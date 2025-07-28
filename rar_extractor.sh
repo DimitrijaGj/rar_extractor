@@ -8,22 +8,19 @@ fi
 SOURCE_FOLDER="$1"
 DEST_FOLDER="$2"
 
-# Normalize paths
-SOURCE_FOLDER="$(cd "$SOURCE_FOLDER" && pwd)"
-DEST_FOLDER="$(cd "$DEST_FOLDER" && pwd)"
+if ! command -v unar >/dev/null 2>&1; then
+  echo "❌ 'unar' is not installed. Install it via Homebrew: brew install unar"
+  exit 1
+fi
 
-# Find all .rar files and extract them
-find "$SOURCE_FOLDER" -type f -iname '*.rar' | while read rar_file; do
-    # Get relative path
+find "$SOURCE_FOLDER" -type f -iname '*.rar' | while read -r rar_file; do
     relative_path="${rar_file#$SOURCE_FOLDER/}"
-    relative_dir=$(dirname "$relative_path")
-    
-    # Build output path
+    relative_dir="$(dirname "$relative_path")"
     output_dir="$DEST_FOLDER/$relative_dir"
-    mkdir -p "$output_dir"
 
-    echo "Extracting: $rar_file → $output_dir"
-    unrar x -o+ "$rar_file" "$output_dir/"
+    mkdir -p "$output_dir"
+    echo "📦 Extracting: $rar_file → $output_dir"
+    unar -quiet -force-overwrite -output-directory "$output_dir" "$rar_file"
 done
 
 echo "✅ All done!"
